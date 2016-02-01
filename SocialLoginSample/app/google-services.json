@@ -1,0 +1,51 @@
+{
+  "project_info": {
+    "project_id": "social-login-sample",
+    "project_number": "709356696503",
+    "name": "Social Login Sample"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:709356696503:android:25349f72a859f9b8",
+        "client_id": "android:auth0.com.socialloginsample",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "auth0.com.socialloginsample"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "709356696503-8v8ni0v1e98avgk98su2etk42mtaflkr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "auth0.com.socialloginsample",
+            "certificate_hash": "0A5B3F152F56D18ECBA49DDAB0D2FF9F4E67CE6B"
+          }
+        }
+      ],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "cloud_messaging_service": {
+          "status": 1,
+          "apns_config": []
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "google_signin_service": {
+          "status": 2
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "client_info": [],
+  "ARTIFACT_VERSION": "1"
+}
