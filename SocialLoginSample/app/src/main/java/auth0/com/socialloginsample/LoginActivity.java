@@ -47,10 +47,19 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.twitter.sdk.android.core.Callback;
+import com.twitter.sdk.android.core.Result;
+import com.twitter.sdk.android.core.TwitterAuthConfig;
+import com.twitter.sdk.android.core.TwitterCore;
+import com.twitter.sdk.android.core.TwitterException;
+import com.twitter.sdk.android.core.TwitterSession;
+import com.twitter.sdk.android.core.identity.TwitterLoginButton;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+
+import io.fabric.sdk.android.Fabric;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -64,7 +73,7 @@ public class LoginActivity extends AppCompatActivity {
     // UI references.
     private SignInButton mGoogleSignInButton;
     private LoginButton mFacebookSignInButton;
-    private Button mTwitterSignInButton;
+    private TwitterLoginButton mTwitterSignInButton;
     private Button mInstagramSignInButton;
 
     // Vars
@@ -77,10 +86,13 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         FacebookSdk.sdkInitialize(getApplicationContext());
+        mFacebookCallbackManager = CallbackManager.Factory.create();
+
+        TwitterAuthConfig authConfig = new TwitterAuthConfig("lPcEPVTOHSdQgfy22rxYlvz04",
+                "Rd9yQ4B8dSffj025UJP8y3QQIbJvRO6eUv68jmgIhe1dUSdjNq");
+        Fabric.with(this, new TwitterCore(authConfig));
 
         setContentView(R.layout.activity_login);
-
-        mFacebookCallbackManager = CallbackManager.Factory.create();
 
         final View.OnClickListener listener = new View.OnClickListener() {
             @Override
@@ -90,7 +102,7 @@ public class LoginActivity extends AppCompatActivity {
                         signInWithGoogle();
                         break;
                     case R.id.facebook_sign_in_button:
-                        signInWithFacebook();
+                        //Handled by Facebook SDK, no handler necessary.
                         break;
                     case R.id.twitter_sign_in_button:
                         break;
@@ -132,8 +144,25 @@ public class LoginActivity extends AppCompatActivity {
             }
         );
 
-        mTwitterSignInButton = (Button)findViewById(R.id.twitter_sign_in_button);
-        mTwitterSignInButton.setOnClickListener(listener);
+        mTwitterSignInButton = (TwitterLoginButton)findViewById(R.id.twitter_sign_in_button);
+        mTwitterSignInButton.setCallback(new Callback<TwitterSession>() {
+            @Override
+            public void success(final Result<TwitterSession> result) {
+                handleSignInResult(new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        TwitterCore.getInstance().logOut();
+                        return null;
+                    }
+                });
+            }
+
+            @Override
+            public void failure(TwitterException e) {
+                Log.d(LoginActivity.class.getCanonicalName(), e.getMessage());
+                handleSignInResult(null);
+            }
+        });
 
         mInstagramSignInButton = (Button)findViewById(R.id.instagram_sign_in_button);
         mInstagramSignInButton.setOnClickListener(listener);
@@ -176,6 +205,8 @@ public class LoginActivity extends AppCompatActivity {
             } else {
                 handleSignInResult(null);
             }
+        } else if(TwitterAuthConfig.DEFAULT_AUTH_REQUEST_CODE == requestCode) {
+            mTwitterSignInButton.onActivityResult(requestCode, resultCode, data);
         } else {
             mFacebookCallbackManager.onActivityResult(requestCode, resultCode, data);
         }
@@ -195,9 +226,6 @@ public class LoginActivity extends AppCompatActivity {
 
         final Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
-    }
-
-    private void signInWithFacebook() {
     }
 
     private void handleSignInResult(Callable<Void> logout) {
