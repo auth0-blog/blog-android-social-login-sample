@@ -55,6 +55,7 @@ import com.twitter.sdk.android.core.TwitterException;
 import com.twitter.sdk.android.core.TwitterSession;
 import com.twitter.sdk.android.core.identity.TwitterLoginButton;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -88,34 +89,23 @@ public class LoginActivity extends AppCompatActivity {
         FacebookSdk.sdkInitialize(getApplicationContext());
         mFacebookCallbackManager = CallbackManager.Factory.create();
 
+        checkForInstagramData();
+
+        // The private key that follows should never be public
+        // (consider this when deploying the application)
         TwitterAuthConfig authConfig = new TwitterAuthConfig("lPcEPVTOHSdQgfy22rxYlvz04",
                 "Rd9yQ4B8dSffj025UJP8y3QQIbJvRO6eUv68jmgIhe1dUSdjNq");
         Fabric.with(this, new TwitterCore(authConfig));
 
         setContentView(R.layout.activity_login);
 
-        final View.OnClickListener listener = new View.OnClickListener() {
+        mGoogleSignInButton = (SignInButton)findViewById(R.id.google_sign_in_button);
+        mGoogleSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                switch(v.getId()) {
-                    case R.id.google_sign_in_button:
-                        signInWithGoogle();
-                        break;
-                    case R.id.facebook_sign_in_button:
-                        //Handled by Facebook SDK, no handler necessary.
-                        break;
-                    case R.id.twitter_sign_in_button:
-                        break;
-                    case R.id.instagram_sign_in_button:
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unexpected button id");
-                }
+                signInWithGoogle();
             }
-        };
-
-        mGoogleSignInButton = (SignInButton)findViewById(R.id.google_sign_in_button);
-        mGoogleSignInButton.setOnClickListener(listener);
+        });
 
         mFacebookSignInButton = (LoginButton)findViewById(R.id.facebook_sign_in_button);
         mFacebookSignInButton.registerCallback(mFacebookCallbackManager,
@@ -165,7 +155,12 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         mInstagramSignInButton = (Button)findViewById(R.id.instagram_sign_in_button);
-        mInstagramSignInButton.setOnClickListener(listener);
+        mInstagramSignInButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                signInWithInstagram();
+            }
+        });
     }
 
     @Override
@@ -226,6 +221,37 @@ public class LoginActivity extends AppCompatActivity {
 
         final Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+    private void signInWithInstagram() {
+        final Uri.Builder uriBuilder = new Uri.Builder();
+        uriBuilder.scheme("https")
+                  .authority("api.instagram.com")
+                  .appendPath("oauth")
+                  .appendPath("authorize")
+                  .appendQueryParameter("client_id", "18a8b74da9644bd7a9294caef1c5e76c")
+                  .appendQueryParameter("redirect_uri", "sociallogin://redirect")
+                  .appendQueryParameter("response_type", "token");
+        final Intent browser = new Intent(Intent.ACTION_VIEW, uriBuilder.build());
+        startActivity(browser);
+    }
+
+    private void checkForInstagramData() {
+        final Uri data = this.getIntent().getData();
+        if(data != null && data.getScheme().equals("sociallogin") && data.getFragment() != null) {
+            final String accessToken = data.getFragment().replaceFirst("access_token=", "");
+            if (accessToken != null) {
+                handleSignInResult(new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        // Do nothing, just throw the access token away.
+                        return null;
+                    }
+                });
+            } else {
+                handleSignInResult(null);
+            }
+        }
     }
 
     private void handleSignInResult(Callable<Void> logout) {
