@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="auth0.com.socialloginsamplelock">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:name=".Application">
+
+        <activity
+            android:name=".LoggedInActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+
+        <!--Auth0 Lock-->
+        <activity
+            android:name="com.auth0.lock.LockActivity"
+            android:theme="@style/Lock.Theme"
+            android:screenOrientation="portrait"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.LAUNCHER" />
+                <data android:scheme="a0ke64vungewty3qnpf9imxqjdh8b5oox0"
+                      android:host="@string/auth0_domain"/>
+            </intent-filter>
+        </activity>
+        <meta-data android:name="com.auth0.lock.client-id" android:value="@string/auth0_client_id"/>
+        <meta-data android:name="com.auth0.lock.domain-url" android:value="@string/auth0_domain"/>
+        <!--Auth0 Lock End-->
+    </application>
+
+</manifest>
